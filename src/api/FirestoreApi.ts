@@ -464,17 +464,20 @@ export const ceremonyQueueListener = async (ceremonyId: string, callback: (c: an
 };
 
 export const addOrUpdateContribution = async (ceremonyId: string, contribution: Partial<Contribution>) => {
+  if (!contribution.queueIndex) {
+    throw new Error(`Attempting to add or update contribution without queueIndex`);
+  }
   const db = firebase.firestore();
   try {
     // Existing contributor - update the record
-    const eventsQuery = db.collection("ceremonies")
+    const indexQuery = db.collection("ceremonies")
       .doc(ceremonyId)
       .collection('contributions')
       .withConverter(contributionConverter)
-      .where('participantId', '==', contribution.participantId)
+      .where('queueIndex', '==', contribution.queueIndex)
       .limit(1);
-    const participantContrib = await eventsQuery.get();
-    if (participantContrib.empty) {
+    const contrib = await indexQuery.get();
+    if (contrib.empty) {
       // New contributor
       const doc = await db
           .doc(`ceremonies/${ceremonyId}`)
@@ -483,15 +486,22 @@ export const addOrUpdateContribution = async (ceremonyId: string, contribution: 
           .doc();
       
       await doc.set(contribution, { merge: true });
-      console.log(`added contribution summary ${doc.id}`);
+      console.log(`added contribution summary ${doc.id} for index ${contribution.queueIndex}`);
     } else {
-      // Update existing contributor
-      const doc = participantContrib.docs[0].ref;
-      await doc.update(contribution);
+      // Update existing contribution
+      const doc = contrib.docs[0];
+      const oldStatus = doc.get('status');
+      // Don't allow this if the contrib has been invalidated.
+      if (INVALIDATED === oldStatus) {
+        console.warn(`Invalid contribution status change: ${oldStatus} to ${contribution.status}. Ignored.`);
+      } else {
+        await doc.ref.update(contribution);
+      }
     }
   } catch (e) { throw new Error(`Error adding/updating contribution summary: ${e.message}`);}
 
 };
+
 
 export const updateContribution = async (ceremonyId: string, index: number, contribution: Partial<Contribution>) => {
   const db = firebase.firestore();
