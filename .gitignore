@@ -10,4 +10,4 @@ firebaseConfig.*
 data/**/*
 data
 trustedsetup*.json
-firebase_skey*
+src/firebase-config*
