@@ -79,14 +79,14 @@ const saveCreds = async (cred: string) => {
 
 const getCreds = async (): Promise<firebase.auth.OAuthCredential> => {
     return new Promise((resolve, reject) => {
-        fs.readFile('.data', (err, data) => {
+        const DATA_FILE = '.data';
+        fs.readFile(DATA_FILE, (err, data) => {
             if (err) {
                 if (err.code === 'ENOENT') {
                     resolve(null);
                 }
                 reject(err)
-            }
-            else {
+            } else {
                 //const cred = data.toJSON();
                 resolve(firebase.auth.AuthCredential.fromJSON(data.toString()));
             }
