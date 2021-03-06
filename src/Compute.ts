@@ -52,14 +52,18 @@ export const joinCeremony = async (arg: string) => {
         const c = parseInt(arg);
         if ((c > 0) && (c <= state.ceremonyList.length)) {
             const ceremony = state.ceremonyList[c-1];
-            console.log(`Joining ${ceremony.title} ...`);
-            // Add contribution to DB (WAITING)
-            const contribState = await joinCeremonyApi(ceremony.id, state.user.uid);
-            console.log(`You are contributor number ${contribState.queueIndex}`);
-            // Start queue listener
-            ceremonyQueueListener(ceremony.id, updateQueue);
-            // Set local state
-            setState(StateChange.JOINED, {index: c-1, contribState});
+            if (ceremony.completed) {
+                console.log(`You have already completed this circuit.`);
+            } else {
+                console.log(`Joining ${ceremony.title} ...`);
+                // Add contribution to DB (WAITING)
+                const contribState = await joinCeremonyApi(ceremony.id, state.user.uid);
+                console.log(`You are contributor number ${contribState.queueIndex}`);
+                // Start queue listener
+                ceremonyQueueListener(ceremony.id, updateQueue);
+                // Set local state
+                setState(StateChange.JOINED, {index: c-1, contribState});
+            }
         } else {
             console.log('Invalid argument');
         }

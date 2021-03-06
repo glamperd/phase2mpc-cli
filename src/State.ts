@@ -103,6 +103,8 @@ export const setState = (newState: StateChange, data?: any) => {
         case StateChange.UPLOADED: {
             state.uploaded = true;
             state.contributionState.endTime = Date.now();
+            const ceremony =  state.ceremonyList[state.selectedCeremony];
+            ceremony.completed = true;
             state.autoRun = false;
             break;
         }
