@@ -365,7 +365,7 @@ export const getContributionState = async (ceremony: Ceremony, contribution: Con
   };
   // Get currently running contributor's index
   // Get average time per contribution & expected wait time
-  const stats = await getCeremonyStats(ceremony.id);
+  const stats = await getCeremonyStats(ceremony.id, contState.queueIndex);
 
   // expected start time = now + (queueIndex - currentIndex) x av secs per contrib
   const estStartTime = Date.now() + 1000 * ((contState.queueIndex - stats.currentIndex) * stats.averageSecondsPerContribution);
@@ -381,7 +381,7 @@ export const getContributionState = async (ceremony: Ceremony, contribution: Con
   return cs;
 };
 
-const getCeremonyStats = async (ceremonyId: string): Promise<any> => {
+const getCeremonyStats = async (ceremonyId: string, maxIndex: number): Promise<any> => {
   let contributionStats = {
     currentIndex: 0,
     averageSecondsPerContribution: 0,
@@ -406,7 +406,7 @@ const getCeremonyStats = async (ceremonyId: string): Promise<any> => {
     if (cont.status === COMPLETE
         || cont.status === INVALIDATED
         || cont.status === RUNNING) {
-      if (cont.queueIndex) {
+      if (cont.queueIndex && cont.queueIndex < maxIndex) {
         contributionStats.currentIndex = cont.queueIndex;
         if (cont.status === COMPLETE) contributionStats.lastValidIndex = cont.queueIndex;
       }
