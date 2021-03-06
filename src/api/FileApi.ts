@@ -194,6 +194,6 @@ export const uploadParams = async (ceremonyId: string, index: number, paramsFile
         return fileRef[0].name;
     } catch(err) {
         console.error(`Upload failed: ${err.message}`);
-        return null;
+        throw err;
     };
 };
