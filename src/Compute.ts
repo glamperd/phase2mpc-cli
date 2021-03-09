@@ -89,7 +89,7 @@ const updateQueue = (cs: ContributionState) => {
             runCeremony();
         }
     } else {
-        console.log(`Participant ${cs.currentIndex} is starting their turn`);
+        console.log(`Participant ${cs.currentIndex} has completed their turn`);
     }
 }
 
@@ -113,6 +113,9 @@ export const getEntropy = async (rl, arg?: string) => {
 };
 
 export const runCeremony = async () => {
+    const state = getState();
+    if (state.waiting) return;
+
     console.log(`Running...`);
     // Called when waiting is finished (notified via queue update)
     // download
@@ -127,6 +130,9 @@ export const runCeremony = async () => {
 
 export const download = async () => {
     const state = getState();
+    if (state.waiting) {
+        console.warn(`Invalid request to download while waiting`);
+    }
     const ceremonyId = state.ceremonyList[state.selectedCeremony].id;
     console.log(`Downloading prior contributor's data...`);
     addCeremonyEvent(ceremonyId, createCeremonyEvent(
